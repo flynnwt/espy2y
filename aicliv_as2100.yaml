@@ -1,0 +1,111 @@
+esphome:
+  name: aicliv_as2100
+  platform: esp8266
+  board: esp01
+  esp8266_restore_from_flash: true
+  on_boot:
+    priority: 100
+    then:
+      if:
+        condition:
+          lambda: return id(state);
+        then:
+          light.turn_on:
+            id: led1
+        else:
+          light.turn_off:
+            id: led1
+  on_loop:
+    if:
+      condition:
+        lambda: "\nint temp = id(relay1).state or id(relay2).state or id(relay3).state;\n\
+          int rc = temp != id(state);\nif (!id(state)) {\n   if (temp) {\n      id(state)\
+          \ = 1;\n   }\n} else {\n   if (!temp) {\n      id(state) = 0;\n   }\n}\n\
+          if (rc) {\n   id(state1) = id(relay1).state; id(state2) = id(relay2).state;\
+          \ id(state3) = id(relay3).state;\n}\nreturn rc;\n"
+      then:
+        if:
+          condition:
+            lambda: return id(state);
+          then:
+            light.turn_on:
+              id: led1
+          else:
+            light.turn_off:
+              id: led1
+logger:
+wifi:
+  ssid: jennyjenny
+  password: '18008675309'
+api:
+  password: '18008675309'
+  reboot_timeout: 0s
+ota:
+  safe_mode: true
+  password: '18008675309'
+web_server:
+  port: 80
+globals:
+  - id: state1
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: state2
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: state3
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: state
+    type: int
+    restore_value: no
+    initial_value: '0'
+output:
+  platform: gpio
+  id: status
+  pin:
+    number: GPIO4
+    inverted: true
+light:
+  platform: binary
+  name: LED 1
+  id: led1
+  output: status
+binary_sensor:
+  platform: gpio
+  name: Button 1
+  id: button1
+  pin:
+    number: GPIO13
+    inverted: true
+  on_press:
+    then:
+      lambda: "\nif (id(state)) {\n   id(state1) = id(relay1).state; id(state2) =\
+        \ id(relay2).state; id(state3) = id(relay3).state;\n   id(relay1).turn_off();\
+        \ id(relay2).turn_off(); id(relay3).turn_off(); \n   id(state) = 0;\n   auto\
+        \ call = id(led1).turn_off(); call.perform();   \n} else {\n   id(state) =\
+        \ id(state1) or id(state2) or id(state3);\n   if (id(state)) {\n      if (id(state1))\
+        \ {id(relay1).turn_on();}\n      if (id(state2)) {id(relay2).turn_on();}\n\
+        \      if (id(state3)) {id(relay3).turn_on();}\n   } else {\n      id(state)\
+        \ = 1;\n      id(relay1).turn_on(); id(relay2).turn_on(); id(relay3).turn_on();\n\
+        \   }\n   id(state1) = id(relay1).state; id(state2) = id(relay2).state; id(state3)\
+        \ = id(relay3).state;\n   auto call = id(led1).turn_on(); call.perform();\
+        \   \n}\n"
+switch:
+  - platform: gpio
+    name: Relay 1
+    id: relay1
+    pin: GPIO12
+    restore_mode: RESTORE_DEFAULT_OFF
+  - platform: gpio
+    name: Relay 2
+    id: relay2
+    pin: GPIO14
+    restore_mode: RESTORE_DEFAULT_OFF
+  - platform: gpio
+    name: Relay 3
+    id: relay3
+    pin: GPIO3
+    restore_mode: RESTORE_DEFAULT_OFF
