@@ -1,0 +1,84 @@
+esphome:
+  platform: esp8266
+  board: esp8285
+  name: zemismart_ks811
+  esp8266_restore_from_flash: true
+logger:
+wifi:
+  ap:
+    ssid: zemismart_ks811
+  password: 18008675309
+  ssid: jennyjenny
+api:
+  reboot_timeout: 0s
+  password: 18008675309
+ota:
+  password: 18008675309
+  safe_mode: true
+web_server:
+  port: 80
+time:
+  platform: sntp
+  id: datetime
+output:
+  platform: gpio
+  id: status
+  pin:
+    number: GPIO2
+    inverted: true
+light:
+  platform: binary
+  output: status
+  id: led1
+  name: LED 1
+binary_sensor:
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: GPIO16
+      inverted: true
+    internal: true
+    name: Button 1
+    on_press:
+      then:
+        switch.toggle:
+          id: relay1
+    id: button1
+  - platform: gpio
+    pin:
+      number: GPIO5
+      inverted: true
+    internal: true
+    name: Button 2
+    on_press:
+      then:
+        switch.toggle:
+          id: relay2
+    id: button2
+  - platform: gpio
+    pin:
+      number: GPIO4
+      inverted: true
+    internal: true
+    name: Button 3
+    on_press:
+      then:
+        switch.toggle:
+          id: relay3
+    id: button3
+switch:
+  - platform: gpio
+    restore_mode: RESTORE_DEFAULT_OFF
+    id: relay1
+    pin: GPIO13
+    name: Relay 1
+  - platform: gpio
+    restore_mode: RESTORE_DEFAULT_OFF
+    id: relay2
+    pin: GPIO12
+    name: Relay 2
+  - platform: gpio
+    restore_mode: RESTORE_DEFAULT_OFF
+    id: relay3
+    pin: GPIO14
+    name: Relay 3
